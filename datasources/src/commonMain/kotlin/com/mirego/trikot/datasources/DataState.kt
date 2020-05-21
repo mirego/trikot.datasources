@@ -1,5 +1,7 @@
 package com.mirego.trikot.datasources
 
+import com.mirego.trikot.foundation.CommonJSExport
+
 @Suppress("EqualsOrHashCode")
 sealed class DataState<V, E : Throwable> {
     data class Pending<V, E : Throwable>(val value: V? = null) : DataState<V, E>() {

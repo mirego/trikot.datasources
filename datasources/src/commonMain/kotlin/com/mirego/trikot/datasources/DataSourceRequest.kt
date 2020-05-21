@@ -1,5 +1,8 @@
 package com.mirego.trikot.datasources
 
+import com.mirego.trikot.foundation.CommonJSExport
+
+@CommonJSExport
 interface DataSourceRequest {
     /**
      * Identifier use to save data to cache

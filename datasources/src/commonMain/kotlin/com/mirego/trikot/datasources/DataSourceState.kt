@@ -1,5 +1,8 @@
 package com.mirego.trikot.datasources
 
+import com.mirego.trikot.foundation.CommonJSExport
+
+@CommonJSExport
 fun <T> DataState<T, out Throwable>.toDataSourceState() = when (this) {
     is DataState.Data -> DataSourceState<T>(false, value)
     is DataState.Error -> DataSourceState<T>(false, value, error)
