@@ -80,7 +80,7 @@ invalidatingPublisher.value = true // Will invalidate the whole myDataSource cac
 
 ## License
 
-Trikot.streams is © 2019 [Mirego](https://www.mirego.com) and may be freely distributed under the [New BSD license](http://opensource.org/licenses/BSD-3-Clause). See the [`LICENSE.md`](https://github.com/mirego/trikot.datasources/blob/master/LICENSE.md) file.
+Trikot.streams is © 2019-2020 [Mirego](https://www.mirego.com) and may be freely distributed under the [New BSD license](http://opensource.org/licenses/BSD-3-Clause). See the [`LICENSE.md`](https://github.com/mirego/trikot.datasources/blob/master/LICENSE.md) file.
 
 ## About Mirego
 
