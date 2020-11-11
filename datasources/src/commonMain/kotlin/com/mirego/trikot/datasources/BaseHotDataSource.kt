@@ -1,28 +1,28 @@
 package com.mirego.trikot.datasources
 
 import com.mirego.trikot.datasources.extensions.data
+import com.mirego.trikot.foundation.concurrent.AtomicListReference
 import com.mirego.trikot.foundation.concurrent.AtomicReference
 import com.mirego.trikot.streams.cancellable.CancellableManager
 import com.mirego.trikot.streams.reactive.BehaviorSubject
 import com.mirego.trikot.streams.reactive.Publishers
 import com.mirego.trikot.streams.reactive.distinctUntilChanged
-import com.mirego.trikot.streams.reactive.filter
 import com.mirego.trikot.streams.reactive.filterNotNull
 import com.mirego.trikot.streams.reactive.first
 import com.mirego.trikot.streams.reactive.map
-import com.mirego.trikot.streams.reactive.processors.combine
+import com.mirego.trikot.streams.reactive.processors.safeCombine
 import com.mirego.trikot.streams.reactive.promise.Promise
 import com.mirego.trikot.streams.reactive.shared
 import com.mirego.trikot.streams.reactive.subscribe
 import org.reactivestreams.Publisher
 
-private typealias NullableDataState<T> = BaseDataSourceV2.NullableValue<DataState<T, Throwable>>
+private typealias NullableDataState<T> = BaseHotDataSource.NullableValue<DataState<T, Throwable>>
 private typealias ReadPublisher<T> = Publisher<NullableDataState<T>>
 private typealias DataPublisher<T> = BehaviorSubject<NullableDataState<T>>
 
-abstract class BaseDataSourceV2<R : DataSourceRequest, T>(private val cacheDataSource: DataSource<R, T>? = null) : DataSource<R, T> {
+abstract class BaseHotDataSource<R : DataSourceRequest, T>(private val cacheDataSource: DataSource<R, T>? = null) : DataSource<R, T> {
 
-    private val cacheIdToReadInProgress = AtomicReference<Map<Any, Boolean>>(HashMap())
+    private val cacheIdsInReading = AtomicListReference<Any>()
     private val cacheIdToPublisher = AtomicReference<Map<Any, PublisherTriple<T>>>(HashMap())
 
     override fun read(request: R): Publisher<DataState<T, Throwable>> {
@@ -109,13 +109,14 @@ abstract class BaseDataSourceV2<R : DataSourceRequest, T>(private val cacheDataS
         }
     }
 
-    private fun isReadInProgress(request: R) = cacheIdToReadInProgress.value[request.cacheableId] == true
+    private fun isReadInProgress(request: R) = cacheIdsInReading.value.contains(request.cacheableId)
 
     private fun setReadInProgress(request: R, inProgress: Boolean) {
-        val initialMap = cacheIdToReadInProgress.value
-        val mutableMap = initialMap.toMutableMap()
-        mutableMap[request.cacheableId] = inProgress
-        cacheIdToReadInProgress.compareAndSet(initialMap, mutableMap)
+        if (inProgress) {
+            cacheIdsInReading.add(request.cacheableId)
+        } else {
+            cacheIdsInReading.remove(request.cacheableId)
+        }
     }
 
     abstract fun internalRead(request: R): Promise<T>
@@ -131,13 +132,4 @@ abstract class BaseDataSourceV2<R : DataSourceRequest, T>(private val cacheDataS
     data class NullableValue<T>(
         val value: T?
     )
-}
-
-@Suppress("UNCHECKED_CAST")
-fun <T, R> Publisher<T>.safeCombine(publisher: Publisher<R>): Publisher<Pair<T, R>> {
-    return (this as Publisher<Any>).combine(listOf(publisher) as List<Publisher<Any>>)
-        .filter { list -> list[0] as? T != null && list[1] as? T != null }
-        .map { list ->
-            list[0] as T to list[1] as R
-        }
 }

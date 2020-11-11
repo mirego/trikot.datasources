@@ -8,7 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
-class BaseDataSourceV2Tests {
+class BaseHotDataSourceTests {
 
     private val requestUseCache = TestDataSourceRequest("1", DataSourceRequest.Type.USE_CACHE, DataSourceTestData("1"))
     private val requestRefreshCache = TestDataSourceRequest("1", DataSourceRequest.Type.REFRESH_CACHE, DataSourceTestData("1"))
@@ -146,7 +146,7 @@ class BaseDataSourceV2Tests {
         cacheDataSource: DataSource<TestDataSourceRequest, DataSourceTestData>? = null,
         private val userRequestValue: Boolean = false
     ) :
-        BaseDataSourceV2<TestDataSourceRequest, DataSourceTestData>(cacheDataSource) {
+        BaseHotDataSource<TestDataSourceRequest, DataSourceTestData>(cacheDataSource) {
 
         var internalReadCount = 0
 
@@ -163,7 +163,7 @@ class BaseDataSourceV2Tests {
         }
     }
 
-    class CacheDataSource(private val readPromise: Promise<DataSourceTestData>) : BaseDataSourceV2<TestDataSourceRequest, DataSourceTestData>() {
+    class CacheDataSource(private val readPromise: Promise<DataSourceTestData>) : BaseHotDataSource<TestDataSourceRequest, DataSourceTestData>() {
         var internalSaveCount = 0
 
         override fun internalRead(request: TestDataSourceRequest): Promise<DataSourceTestData> {

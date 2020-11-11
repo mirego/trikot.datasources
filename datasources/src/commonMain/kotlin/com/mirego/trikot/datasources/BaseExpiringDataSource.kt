@@ -23,7 +23,7 @@ interface ExpiringDataSourceRequest : DataSourceRequest {
 
 abstract class BaseExpiringDataSource<R : ExpiringDataSourceRequest, D, T>(
     cacheDataSource: DataSource<R, T>? = null
-) : BaseDataSourceV2<R, T>(cacheDataSource) where T : ExpiringValue<D> {
+) : BaseHotDataSource<R, T>(cacheDataSource) where T : ExpiringValue<D> {
 
     @ExperimentalTime
     override fun internalShouldRead(request: R, data: DataState<T, Throwable>): Boolean {
