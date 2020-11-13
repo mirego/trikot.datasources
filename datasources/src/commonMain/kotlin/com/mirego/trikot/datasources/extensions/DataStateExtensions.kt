@@ -23,7 +23,7 @@ fun <T, R, E : Throwable> DataState<T, E>.mapData(block: MapProcessorBlock<T, R>
         is DataState.Error -> DataState.Error(error, value?.let(block))
     }
 
-fun <T, E : Throwable> DataState<T, E>.extractValue(): T? {
+fun <T, E : Throwable> DataState<T, E>.value(): T? {
     return when (val state = this) {
         is DataState.Pending -> state.value
         is DataState.Data -> state.value

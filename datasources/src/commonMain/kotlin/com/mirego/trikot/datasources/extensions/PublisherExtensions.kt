@@ -73,10 +73,4 @@ fun <T, E : Throwable> Publisher<DataState<T, E>>.filterIsData() =
     filterIs<DataState<T, E>, DataState.Data<T, E>>()
 
 fun <T, E : Throwable> Publisher<DataState<T, E>>.filterValue() =
-    filterNotNull {
-        when (it) {
-            is DataState.Data -> it.value
-            is DataState.Pending -> it.value
-            is DataState.Error -> it.value
-        }
-    }
+    filterNotNull { it.value() }
