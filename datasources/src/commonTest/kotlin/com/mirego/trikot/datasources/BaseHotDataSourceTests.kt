@@ -7,6 +7,7 @@ import com.mirego.trikot.streams.reactive.promise.Promise
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class BaseHotDataSourceTests {
 
@@ -147,6 +148,29 @@ class BaseHotDataSourceTests {
         assertEquals(1, mainDataSource.internalReadCount)
     }
 
+    @Test
+    fun whenCleanOneCacheIdThenOtherRemains() {
+        val mainDataSource = MainDataSource(Promise.reject(Throwable()), userRequestValue = true)
+
+        mainDataSource.read(requestUseCache).assertEquals(DataState.data(requestUseCache.value))
+        mainDataSource.read(requestUseCache2).assertEquals(DataState.data(requestUseCache2.value))
+
+        mainDataSource.clean(requestUseCache.cacheableId)
+        assertEquals(1, mainDataSource.cacheableIds().size)
+        assertTrue(mainDataSource.cacheableIds().contains(requestUseCache2.cacheableId))
+    }
+
+    @Test
+    fun whenCleanAllThenEmpty() {
+        val mainDataSource = MainDataSource(Promise.reject(Throwable()), userRequestValue = true)
+
+        mainDataSource.read(requestUseCache).assertEquals(DataState.data(requestUseCache.value))
+        mainDataSource.read(requestUseCache2).assertEquals(DataState.data(requestUseCache2.value))
+
+        mainDataSource.cleanAll()
+        assertEquals(0, mainDataSource.cacheableIds().size)
+    }
+
     data class DataSourceTestData(
         val value: String
     )
@@ -183,7 +207,7 @@ class BaseHotDataSourceTests {
 
         override fun internalRead(request: TestDataSourceRequest): Promise<DataSourceTestData> {
             return if (deletedCacheableIds.contains(request.cacheableId)) {
-                Promise.reject(Throwable())
+                Promise.reject(Throwable("The cache was deleted for this request: ${request.cacheableId}"))
             } else {
                 return readPromise
             }
