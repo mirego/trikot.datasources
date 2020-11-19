@@ -33,6 +33,15 @@ abstract class BaseHotDataSource<R : DataSourceRequest, T>(private val cacheData
         return publishers.sharedPublisher
     }
 
+    override fun delete(cacheableId: Any) {
+        val initialMap = cacheIdToPublisher.value
+        val mutableMap = initialMap.toMutableMap()
+        mutableMap.remove(cacheableId)
+        cacheIdToPublisher.compareAndSet(initialMap, mutableMap)
+
+        cacheDataSource?.delete(cacheableId)
+    }
+
     private fun getPublishers(request: R): PublisherTriple<T> {
         val cacheableId = request.cacheableId
         val publisher = cacheIdToPublisher.value[cacheableId]
