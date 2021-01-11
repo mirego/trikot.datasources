@@ -35,31 +35,22 @@ abstract class BaseDataSource<R : DataSourceRequest, T>(private val cacheDataSou
         val publisherPair = mapAtomicReference.value[cacheableId]
         return when {
             publisherPair != null -> publisherPair
-            else -> savePublisherToRegistry(
-                cacheableId,
-                createRefreshablePublisher(request),
-                request
-            )
+            else -> {
+                val publisher =
+                    DataStateRefreshablePublisher({ cancellableManager, isRefreshing ->
+                        when {
+                            isRefreshing || cacheDataSource == null -> readDataOrFallbackToCacheOnError(
+                                request,
+                                cancellableManager
+                            )
+                            else -> readDataFromCache(cacheDataSource, request)
+                        }
+                    }, DataState.pending())
+
+                savePublisherToRegistry(cacheableId, publisher, request)
+            }
         }
     }
-
-    protected open fun createRefreshablePublisher(request: R): RefreshablePublisher<DataState<T, Throwable>> =
-        RefreshablePublisher({ cancellableManager, isRefreshing ->
-            readData(request, cancellableManager, isRefreshing)
-        }, DataState.pending())
-
-    protected fun readData(
-        request: R,
-        cancellableManager: CancellableManager,
-        isRefreshing: Boolean
-    ): Publisher<DataState<T, Throwable>> =
-        when {
-            isRefreshing || cacheDataSource == null -> readDataOrFallbackToCacheOnError(
-                request,
-                cancellableManager
-            )
-            else -> readDataFromCache(cacheDataSource, request)
-        }
 
     fun invalidate() {
         mapAtomicReference.value.forEach { (_, value) ->
