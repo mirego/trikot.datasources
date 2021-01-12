@@ -209,12 +209,16 @@ class BaseDataSourceTests {
     }
 
     @Test
-    fun givenPendingNetworkDataWithRequestTypeRefreshCacheThenDataStatePending() {
-        val networkDataSourceReadPublisher = ReadFromCachePublisher()
-        val networkDataSource = BasicDataSource(mutableMapOf(simpleCacheableId to networkDataSourceReadPublisher))
-        val dataState = networkDataSource.read(FakeRequest(simpleCacheableId, DataSourceRequest.Type.REFRESH_CACHE)).get()
+    fun givenNetworkDataWhenRefreshingThenPendingWithCurrentData() {
+        val networkDataSourceReadPublisher = ReadFromCachePublisher().also { it.dispatchResult(networkResult) }
+        val dataSource = BasicDataSource(mutableMapOf(simpleCacheableId to networkDataSourceReadPublisher))
+        val firstDataState = dataSource.read(FakeRequest(simpleCacheableId, DataSourceRequest.Type.REFRESH_CACHE)).get()
+        firstDataState.assertValue(networkResult)
 
-        dataState.assertPending()
+        networkDataSourceReadPublisher.dispatchResult(null)
+
+        val secondDataState = dataSource.read(FakeRequest(simpleCacheableId, DataSourceRequest.Type.REFRESH_CACHE)).get()
+        secondDataState.assertPending(networkResult)
     }
 
     data class FakeRequest(
