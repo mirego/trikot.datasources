@@ -7,17 +7,16 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 29
+        targetSdkVersion 30
     }
 }
 
 repositories {
     google()
-    jcenter()
     mavenLocal()
     mavenCentral()
     maven { url "https://kotlin.bintray.com/kotlinx" }
@@ -117,7 +116,7 @@ kotlin {
 }
 
 release {
-   checkTasks = ['check']
-   buildTasks = ['publish']
-   updateVersionPart = 2
+    checkTasks = ['check']
+    buildTasks = ['publish']
+    updateVersionPart = 2
 }
