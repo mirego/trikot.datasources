@@ -281,7 +281,7 @@ class BaseDataSourceTests {
             return dataState.just()
         }
 
-        override fun internalRead(request: FakeRequest): ExecutablePublisher<V> = object: ExecutablePublisher<V> {
+        override fun internalRead(request: FakeRequest): ExecutablePublisher<V> = object : ExecutablePublisher<V> {
             override fun cancel() {}
             override fun execute() {}
             override fun subscribe(s: Subscriber<in V>) {}
